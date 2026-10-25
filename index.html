@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attrition Root-Cause Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6fb; --card:#ffffff; --ink:#1b1d36; --muted:#6b6f8e; --line:#e6e8f2;
+  --violet:#6c4cf5; --pink:#ec4899; --amber:#f59e0b; --teal:#14b8a6; --sky:#0ea5e9; --red:#ef4444; --green:#10b981;
+  --grad:linear-gradient(120deg,#6c4cf5 0%,#ec4899 55%,#f59e0b 100%);
+  --shadow:0 6px 24px rgba(40,30,110,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* HERO */
+header{background:var(--grad);color:#fff;padding:36px 0 90px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 20%,rgba(255,255,255,.25),transparent 40%),radial-gradient(circle at 10% 90%,rgba(255,255,255,.15),transparent 35%);pointer-events:none}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;position:relative;z-index:1}
+.brand{font-weight:800;font-size:18px;display:flex;align-items:center;gap:10px}
+.brand i{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.25);display:grid;place-items:center;font-style:normal}
+.nav a{color:#fff;text-decoration:none;font-size:14px;opacity:.9;margin-left:18px;font-weight:600}
+.nav a:hover{opacity:1;text-decoration:underline}
+.hero{position:relative;z-index:1;margin-top:34px;max-width:760px}
+.hero .tag{display:inline-block;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.hero h1{font-size:clamp(28px,4.4vw,46px);line-height:1.1;margin:14px 0 12px;font-weight:800}
+.hero p{font-size:16px;opacity:.95;max-width:640px}
+
+/* LAYOUT */
+main{margin-top:-62px;position:relative;z-index:2;padding-bottom:60px}
+.card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:22px;border:1px solid var(--line)}
+.grid{display:grid;gap:18px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.kpi{position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+.kpi .lbl{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.kpi .val{font-size:30px;font-weight:800;margin:4px 0 2px}
+.kpi .sub{font-size:12.5px;color:var(--muted)}
+section{margin-top:34px}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sec-h h2{font-size:22px;font-weight:800}
+.sec-h p{color:var(--muted);font-size:14px;max-width:640px}
+.step{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--grad);color:#fff;font-size:13px;margin-right:8px;vertical-align:2px}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.filters span{font-size:13px;font-weight:700;color:var(--muted);margin-right:4px}
+.chip{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:99px;font:600 13px inherit;font-family:inherit;cursor:pointer;color:var(--ink);transition:.2s}
+.chip:hover{border-color:var(--violet)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* DRIVERS */
+.two{grid-template-columns:1.1fr .9fr}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.driver{display:grid;grid-template-columns:150px 1fr 64px;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;cursor:pointer;transition:.18s}
+.driver:hover{background:#f3f1ff}
+.driver.on{background:#efeaff;outline:2px solid var(--violet)}
+.driver .nm{font-weight:700;font-size:14px}
+.driver .nm small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.bar-bg{height:14px;background:#eef0f7;border-radius:99px;overflow:hidden}
+.bar{height:100%;border-radius:99px;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.driver .x{font-weight:800;text-align:right;font-size:15px}
+@media(max-width:560px){.driver{grid-template-columns:110px 1fr 52px}}
+.verdict{margin-top:14px;padding:14px 16px;border-radius:14px;background:linear-gradient(120deg,#f3efff,#fff1f7);font-size:14px}
+.verdict b{color:var(--violet)}
+
+/* SVG charts */
+svg text{font-family:'Plus Jakarta Sans',sans-serif}
+.chart-box{position:relative;width:100%}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;opacity:0;transition:opacity .12s;z-index:50;max-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* HEATMAP */
+.heat{display:grid;gap:4px;font-size:12px}
+.heat .c{border-radius:8px;padding:10px 4px;text-align:center;font-weight:700;cursor:default;transition:transform .15s}
+.heat .c:hover{transform:scale(1.07)}
+.heat .h{font-weight:700;color:var(--muted);text-align:center;padding:6px 2px;font-size:11.5px}
+.heat .r{font-weight:700;display:flex;align-items:center;font-size:12.5px}
+
+/* SIMULATOR */
+.sim{grid-template-columns:1fr 1fr}
+@media(max-width:900px){.sim{grid-template-columns:1fr}}
+.slider{margin-bottom:18px}
+.slider label{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:6px}
+.slider label em{font-style:normal;color:var(--violet);font-family:'JetBrains Mono',monospace}
+.slider small{color:var(--muted);font-size:12px}
+input[type=range]{width:100%;accent-color:var(--violet);height:6px;cursor:pointer}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.preset{border:none;padding:8px 14px;border-radius:10px;font:700 12.5px inherit;font-family:inherit;cursor:pointer;color:#fff}
+.out{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.out .box{background:#f7f8fc;border-radius:14px;padding:14px}
+.out .box .lbl{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.out .box .v{font-size:26px;font-weight:800}
+.gauge-wrap{display:flex;justify-content:center}
+.flow{margin-top:14px}
+.flow-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}
+.flow-row .t{width:130px;font-weight:600}
+.flow-row .b{flex:1;height:22px;background:#eef0f7;border-radius:8px;overflow:hidden}
+.flow-row .b div{height:100%;border-radius:8px;transition:width .6s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-weight:700;font-size:11.5px}
+
+/* RECS */
+.recs{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.rec{border-top:5px solid var(--c);transition:transform .2s}
+.rec:hover{transform:translateY(-4px)}
+.rec .pri{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px;background:var(--c);color:#fff;letter-spacing:.04em}
+.rec h3{font-size:17px;margin:10px 0 6px}
+.rec p{font-size:13.5px;color:var(--muted)}
+.rec .ev{margin-top:12px;font-size:12.5px;background:#f7f8fc;padding:10px 12px;border-radius:10px}
+.rec .ev b{color:var(--ink)}
+.rec .imp{display:flex;justify-content:space-between;margin-top:12px;font-size:13px;font-weight:700}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:10px;border-bottom:2px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--violet)}
+td{padding:10px;border-bottom:1px solid var(--line)}
+tr:hover td{background:#faf9ff}
+.risk-pill{display:inline-block;min-width:54px;text-align:center;padding:3px 8px;border-radius:99px;font-weight:800;font-size:12px;color:#fff}
+.flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:#fdecef;color:#c0264b;margin:2px 3px 2px 0;font-weight:600}
+.search{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font:500 14px inherit;font-family:inherit;width:240px;max-width:100%}
+
+/* METHOD */
+.pipe{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.pipe .p{flex:1;min-width:170px;background:#fff;border-radius:14px;padding:14px;border:1px solid var(--line)}
+.pipe .p b{display:block;font-size:14px;margin-bottom:4px}
+.pipe .p span{font-size:12.5px;color:var(--muted)}
+.pipe .p .ic{font-size:22px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:30px 0 40px}
+.fade{opacity:0;transform:translateY(14px);transition:.6s}
+.fade.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="tip" id="tip"></div>
+
+<header>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand"><i>◆</i> RetainIQ</div>
+      <div>
+        <a href="#drivers">Root causes</a><a href="#explore">Explorer</a><a href="#sim">Simulator</a><a href="#recs">Actions</a><a href="#watch">Watchlist</a>
+      </div>
+    </div>
+    <div class="hero">
+      <span class="tag">Employee Attrition Root-Cause Intelligence</span>
+      <h1>Why are people leaving — and what will actually keep them?</h1>
+      <p>One view that joins performance, workload, compensation, absenteeism, overtime, engagement and training data, ranks the organisational factors behind attrition, and tests retention interventions before you spend on them.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid kpis" id="kpis"></div>
+
+  <div class="filters">
+    <span>Department:</span>
+    <div id="deptChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+
+  <!-- DRIVERS -->
+  <section id="drivers" class="fade">
+    <div class="sec-h">
+      <div><h2><span class="step">1</span>Root-cause ranking</h2>
+      <p>How many times more likely employees in the worst 25% of each factor are to leave, compared with everyone else. Click a factor to inspect it.</p></div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <div id="driverList"></div>
+        <div class="verdict" id="verdict"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <h3 style="font-size:16px" id="factorTitle">Attrition rate by band</h3>
+          <span class="mono" style="font-size:12px;color:var(--muted)" id="factorN"></span>
+        </div>
+        <div class="chart-box" id="factorChart"></div>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:6px" id="factorNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPLORER -->
+  <section id="explore" class="fade">
+    <div class="sec-h">
+      <div><h2><span class="step">2</span>Risk landscape</h2>
+      <p>Every dot is an employee. Overtime against engagement shows where burnout concentrates; bubble size is the predicted chance of leaving. Hover for details.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="chip on" data-show="all">Everyone</button>
+        <button class="chip" data-show="left">Only leavers</button>
+        <button class="chip" data-show="stayed">Only stayers</button>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <div class="chart-box" id="scatter"></div>
+        <div class="legend"><span><i style="background:var(--pink)"></i>Left in last 12 months</span><span><i style="background:var(--teal)"></i>Still employed</span><span><i style="background:rgba(239,68,68,.15);border-radius:2px"></i>Burnout zone (overtime &gt; 12 h/wk, engagement &lt; 5)</span></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:4px">Attrition hotspots</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Attrition rate by department and tenure. Darker means more leavers.</p>
+        <div class="heat" id="heat"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <section id="sim" class="fade">
+    <div class="sec-h">
+      <div><h2><span class="step">3</span>What-if retention simulator</h2>
+      <p>Move the levers to see how the model expects attrition, replacement cost and programme cost to change. Results update for the department you have selected.</p></div>
+    </div>
+    <div class="grid sim">
+      <div class="card">
+        <div class="presets">
+          <button class="preset" style="background:var(--violet)" data-p="burnout">Burnout fix</button>
+          <button class="preset" style="background:var(--pink)" data-p="pay">Pay correction</button>
+          <button class="preset" style="background:var(--teal)" data-p="growth">Growth push</button>
+          <button class="preset" style="background:var(--amber)" data-p="all">Balanced plan</button>
+          <button class="preset" style="background:#9aa0bd" data-p="reset">Reset</button>
+        </div>
+        <div id="sliders"></div>
+      </div>
+      <div class="card">
+        <div class="gauge-wrap" id="gauge"></div>
+        <div class="out">
+          <div class="box"><div class="lbl">Leavers avoided / yr</div><div class="v" id="oSaved" style="color:var(--green)">0</div></div>
+          <div class="box"><div class="lbl">Net benefit / yr</div><div class="v" id="oNet">$0</div></div>
+        </div>
+        <div class="flow">
+          <div class="flow-row"><div class="t">Turnover cost today</div><div class="b"><div id="fBase" style="background:var(--red)"></div></div></div>
+          <div class="flow-row"><div class="t">Turnover cost after</div><div class="b"><div id="fNew" style="background:var(--amber)"></div></div></div>
+          <div class="flow-row"><div class="t">Programme cost</div><div class="b"><div id="fCost" style="background:var(--violet)"></div></div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:10px" id="simNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECS -->
+  <section id="recs" class="fade">
+    <div class="sec-h">
+      <div><h2><span class="step">4</span>Evidence-based retention actions</h2>
+      <p>Ranked by the attrition they could prevent in the selected scope. Each card shows the data behind it.</p></div>
+    </div>
+    <div class="grid recs" id="recCards"></div>
+  </section>
+
+  <!-- WATCHLIST -->
+  <section id="watch" class="fade">
+    <div class="sec-h">
+      <div><h2><span class="step">5</span>Flight-risk watchlist</h2>
+      <p>Current employees with the highest predicted risk, with the factors pushing it up. Click a column to sort.</p></div>
+      <input class="search" id="search" placeholder="Search ID, role or department…">
+    </div>
+    <div class="card tbl-wrap"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+  </section>
+
+  <!-- METHOD -->
+  <section class="fade">
+    <div class="sec-h"><div><h2>How the system works</h2></div></div>
+    <div class="pipe">
+      <div class="p"><div class="ic">🗂️</div><b>Integrate</b><span>HRIS, payroll, time &amp; attendance, LMS and engagement surveys joined per employee.</span></div>
+      <div class="p"><div class="ic">🧮</div><b>Model</b><span>Logistic risk model on 7 factors plus tenure; scores every current employee.</span></div>
+      <div class="p"><div class="ic">🔍</div><b>Explain</b><span>Relative-risk ranking separates root causes from noise for each department.</span></div>
+      <div class="p"><div class="ic">🧪</div><b>Simulate</b><span>Levers change the inputs, the model re-scores, and costs are compared.</span></div>
+      <div class="p"><div class="ic">🎯</div><b>Act</b><span>Prioritised actions and a watchlist for managers and HR partners.</span></div>
+    </div>
+  </section>
+</main>
+<footer>RetainIQ · Demo built on a synthetic dataset of 1,500 employees · Replacement cost assumed at 40% of annual salary</footer>
+
+<script>
+/* ---------- Seeded random + synthetic data ---------- */
+let seed=42;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const sig=x=>1/(1+Math.exp(-x));
+
+const DEPTS={
+  Engineering:{n:380,ot:9,pay:0.97,eng:6.4,sal:118000,roles:['Software Engineer','QA Engineer','DevOps Engineer','Data Engineer']},
+  Sales:{n:300,ot:11,pay:0.92,eng:5.6,sal:78000,roles:['Account Executive','Sales Rep','Sales Manager']},
+  'Customer Support':{n:340,ot:13,pay:0.88,eng:5.0,sal:52000,roles:['Support Agent','Support Lead','Escalation Specialist']},
+  Operations:{n:260,ot:8,pay:0.95,eng:6.2,sal:64000,roles:['Ops Analyst','Coordinator','Ops Manager']},
+  Finance:{n:120,ot:6,pay:1.01,eng:6.8,sal:88000,roles:['Accountant','Financial Analyst','Controller']},
+  HR:{n:100,ot:5,pay:0.99,eng:7.0,sal:70000,roles:['HR Generalist','Recruiter','HR Partner']}
+};
+// model coefficients (on standardised-ish raw scales)
+const B={b0:-1.05,ot:0.11,pay:-6.5,eng:-0.42,train:-0.045,abs:0.09,perf:-0.25,tenure:-0.012,promo:0.11};
+function logit(e){
+  return B.b0+B.ot*(e.ot-9)+B.pay*(e.pay-0.95)+B.eng*(e.eng-6)+B.train*(e.train-20)+B.abs*(e.abs-6)+B.perf*(e.perf-3)+B.tenure*(e.tenure-36)+B.promo*(e.promo-2);
+}
+const EMP=[];let id=1001;
+for(const [d,c] of Object.entries(DEPTS)){
+  for(let i=0;i<c.n;i++){
+    const e={id:'E'+(id++),dept:d,role:c.roles[Math.floor(rnd()*c.roles.length)]};
+    e.tenure=Math.round(clamp(Math.exp(3.3+gauss()*0.8),2,240));
+    e.ot=+clamp(c.ot+gauss()*5,0,30).toFixed(1);
+    e.pay=+clamp(c.pay+gauss()*0.09,0.7,1.3).toFixed(2);
+    e.eng=+clamp(c.eng-0.12*(e.ot-c.ot)+gauss()*1.4,1,10).toFixed(1);
+    e.train=Math.round(clamp(22+gauss()*12,0,70));
+    e.abs=Math.round(clamp(5+0.25*(e.ot-9)-0.6*(e.eng-6)+gauss()*3,0,30));
+    e.perf=+clamp(3.2+gauss()*0.75,1,5).toFixed(1);
+    e.promo=+clamp(e.tenure/12*0.6+gauss()*0.9,0,8).toFixed(1); // years since promotion
+    e.salary=Math.round(c.sal*e.pay*(0.85+rnd()*0.3)/1000)*1000;
+    e.p=sig(logit(e));
+    e.left=rnd()<e.p;
+    EMP.push(e);
+  }
+}
+
+/* ---------- Factor definitions ---------- */
+const F=[
+  {k:'ot',nm:'Overtime',u:'h/wk',worst:'high',col:'var(--red)',desc:'Weekly overtime hours',bands:[0,5,10,15,20,31],fmt:v=>v+'h'},
+  {k:'eng',nm:'Engagement',u:'/10',worst:'low',col:'var(--violet)',desc:'Pulse survey score',bands:[1,4,5.5,7,8.5,10.1],fmt:v=>v},
+  {k:'pay',nm:'Pay vs market',u:'ratio',worst:'low',col:'var(--pink)',desc:'Salary ÷ market median',bands:[0.7,0.85,0.95,1.05,1.15,1.31],fmt:v=>Math.round(v*100)+'%'},
+  {k:'promo',nm:'Years since promotion',u:'yrs',worst:'high',col:'var(--amber)',desc:'Career stagnation',bands:[0,1,2,3,5,8.1],fmt:v=>v+'y'},
+  {k:'train',nm:'Training hours',u:'h/yr',worst:'low',col:'var(--teal)',desc:'Learning investment',bands:[0,10,20,30,45,71],fmt:v=>v+'h'},
+  {k:'abs',nm:'Absenteeism',u:'days/yr',worst:'high',col:'var(--sky)',desc:'Unplanned absence',bands:[0,3,6,10,15,31],fmt:v=>v+'d'},
+  {k:'perf',nm:'Performance',u:'/5',worst:'low',col:'#8b5cf6',desc:'Last review rating',bands:[1,2.5,3,3.5,4,5.1],fmt:v=>v}
+];
+
+/* ---------- State ---------- */
+let dept='All',selF='ot',show='all',sortK='p',sortDir=-1;
+const scope=()=>dept==='All'?EMP:EMP.filter(e=>e.dept===dept);
+const fmt$=v=>(v<0?'-':'')+'$'+(Math.abs(v)>=1e6?(Math.abs(v)/1e6).toFixed(2)+'M':Math.round(Math.abs(v)/1000)+'K');
+const pct=v=>(v*100).toFixed(1)+'%';
+const rate=a=>a.length?a.filter(e=>e.left).length/a.length:0;
+
+/* ---------- Tooltip ---------- */
+const tip=document.getElementById('tip');
+function showTip(ev,html){tip.innerHTML=html;tip.style.opacity=1;const x=Math.min(ev.clientX+14,innerWidth-250);tip.style.left=x+'px';tip.style.top=(ev.clientY+14)+'px'}
+function hideTip(){tip.style.opacity=0}
+
+/* ---------- Count-up ---------- */
+function countUp(el,to,f){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.textContent=f(from+(to-from)*e);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+
+/* ---------- KPIs ---------- */
+const KP=[
+  {id:'k1',lbl:'Attrition rate',c:'var(--pink)'},
+  {id:'k2',lbl:'Leavers (12 mo)',c:'var(--violet)'},
+  {id:'k3',lbl:'Replacement cost',c:'var(--amber)'},
+  {id:'k4',lbl:'High-risk employees',c:'var(--red)'},
+  {id:'k5',lbl:'Top root cause',c:'var(--teal)'}
+];
+document.getElementById('kpis').innerHTML=KP.map(k=>`<div class="card kpi" style="--c:${k.c}"><div class="lbl">${k.lbl}</div><div class="val" id="${k.id}">0</div><div class="sub" id="${k.id}s"></div></div>`).join('');
+
+function renderKPIs(){
+  const s=scope(),L=s.filter(e=>e.left),cur=s.filter(e=>!e.left);
+  const cost=L.reduce((a,e)=>a+e.salary*0.4,0);
+  const hi=cur.filter(e=>e.p>0.4).length;
+  const orgRate=rate(EMP);
+  countUp(document.getElementById('k1'),rate(s)*100,v=>v.toFixed(1)+'%');
+  document.getElementById('k1s').textContent=dept==='All'?'Benchmark for the sector: ~15%':`Company average ${pct(orgRate)}`;
+  countUp(document.getElementById('k2'),L.length,v=>Math.round(v).toLocaleString());
+  document.getElementById('k2s').textContent=`out of ${s.length.toLocaleString()} employees`;
+  countUp(document.getElementById('k3'),cost,fmt$);
+  document.getElementById('k3s').textContent='Hiring, onboarding and lost output';
+  countUp(document.getElementById('k4'),hi,v=>Math.round(v));
+  document.getElementById('k4s').textContent='Current staff with risk above 40%';
+  const top=drivers()[0];
+  document.getElementById('k5').textContent=top.nm;
+  document.getElementById('k5s').textContent=`${top.rr.toFixed(1)}× higher attrition in worst quarter`;
+}
+
+/* ---------- Department chips ---------- */
+const dc=document.getElementById('deptChips');
+dc.innerHTML=['All',...Object.keys(DEPTS)].map(d=>`<button class="chip ${d==='All'?'on':''}" data-d="${d}">${d}</button>`).join('');
+dc.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;dept=b.dataset.d;dc.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b));renderAll()};
+
+/* ---------- Drivers (relative risk) ---------- */
+function drivers(){
+  const s=scope();
+  return F.map(f=>{
+    const vals=s.map(e=>e[f.k]).sort((a,b)=>a-b);
+    const q=f.worst==='high'?vals[Math.floor(vals.length*0.75)]:vals[Math.floor(vals.length*0.25)];
+    const worst=s.filter(e=>f.worst==='high'?e[f.k]>=q:e[f.k]<=q);
+    const rest=s.filter(e=>!worst.includes(e));
+    const rw=rate(worst),rr=rest.length?rw/Math.max(rate(rest),0.005):1;
+    return {...f,q,rw,rr,rrest:rate(rest),nw:worst.length};
+  }).sort((a,b)=>b.rr-a.rr);
+}
+function renderDrivers(){
+  const D=drivers(),max=Math.max(...D.map(d=>d.rr));
+  const el=document.getElementById('driverList');
+  el.innerHTML=D.map(d=>`<div class="driver ${d.k===selF?'on':''}" data-k="${d.k}">
+    <div class="nm">${d.nm}<small>${d.worst==='high'?'≥':'≤'} ${d.fmt(d.q)} · ${d.desc}</small></div>
+    <div class="bar-bg"><div class="bar" style="background:${d.col}" data-w="${(d.rr/max*100).toFixed(1)}"></div></div>
+    <div class="x" style="color:${d.col}">${d.rr.toFixed(1)}×</div></div>`).join('');
+  requestAnimationFrame(()=>el.querySelectorAll('.bar').forEach(b=>b.style.width=b.dataset.w+'%'));
+  el.querySelectorAll('.driver').forEach(r=>{
+    r.onclick=()=>{selF=r.dataset.k;renderDrivers();renderFactor()};
+    r.onmousemove=ev=>{const d=D.find(x=>x.k===r.dataset.k);showTip(ev,`<b>${d.nm}</b><br>Worst quarter (${d.nw} people): <b>${pct(d.rw)}</b> leave<br>Everyone else: <b>${pct(d.rrest)}</b> leave`)};
+    r.onmouseleave=hideTip;
+  });
+  const [a,b,c]=D;
+  document.getElementById('verdict').innerHTML=`<b>Verdict${dept==='All'?'':' for '+dept}:</b> attrition is driven mainly by <b>${a.nm.toLowerCase()}</b> (${a.rr.toFixed(1)}×) and <b>${b.nm.toLowerCase()}</b> (${b.rr.toFixed(1)}×), followed by ${c.nm.toLowerCase()}. Factors below ~1.3× behave like noise here and are poor places to spend retention budget.`;
+}
+
+/* ---------- Factor band chart ---------- */
+function renderFactor(){
+  const f=F.find(x=>x.k===selF),s=scope(),avg=rate(s);
+  const bands=[];for(let i=0;i<f.bands.length-1;i++){const lo=f.bands[i],hi=f.bands[i+1];const g=s.filter(e=>e[f.k]>=lo&&e[f.k]<hi);bands.push({lbl:`${f.fmt(lo)}–${f.fmt(+(hi-(f.k==='pay'?0.01:f.k==='eng'||f.k==='perf'?0.1:1)).toFixed(2))}`,n:g.length,r:rate(g)})}
+  document.getElementById('factorTitle').textContent=`Attrition rate by ${f.nm.toLowerCase()}`;
+  document.getElementById('factorN').textContent=`n = ${s.length}`;
+  const W=520,H=280,m={l:44,r:12,t:16,b:44},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const mx=Math.max(0.1,...bands.map(b=>b.r))*1.15,bw=iw/bands.length;
+  let g='';
+  for(let i=0;i<=4;i++){const y=m.t+ih-ih*i/4;g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="#eef0f7"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#6b6f8e">${Math.round(mx*i/4*100)}%</text>`}
+  bands.forEach((b,i)=>{const h=ih*b.r/mx,x=m.l+i*bw+bw*0.15,w=bw*0.7,y=m.t+ih-h;
+    g+=`<rect class="fb" data-i="${i}" x="${x}" y="${m.t+ih}" width="${w}" height="0" rx="8" fill="${f.col}" opacity="${0.45+0.55*b.r/mx}"><animate attributeName="y" to="${y}" dur=".7s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1" keyTimes="0;1" begin="${i*0.06}s"/><animate attributeName="height" to="${h}" dur=".7s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1" keyTimes="0;1" begin="${i*0.06}s"/></rect>
+    <text x="${x+w/2}" y="${y-6}" text-anchor="middle" font-size="12" font-weight="800" fill="#1b1d36">${b.n?Math.round(b.r*100)+'%':'–'}</text>
+    <text x="${x+w/2}" y="${H-24}" text-anchor="middle" font-size="11" fill="#6b6f8e">${b.lbl}</text>
+    <text x="${x+w/2}" y="${H-10}" text-anchor="middle" font-size="10" fill="#9aa0bd">n=${b.n}</text>`});
+  const ay=m.t+ih-ih*avg/mx;
+  g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${ay}" y2="${ay}" stroke="#1b1d36" stroke-dasharray="5 4"/><text x="${W-m.r}" y="${ay-6}" text-anchor="end" font-size="11" font-weight="700" fill="#1b1d36">average ${pct(avg)}</text>`;
+  const box=document.getElementById('factorChart');
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
+  box.querySelectorAll('.fb').forEach(r=>{const b=bands[r.dataset.i];r.style.cursor='pointer';
+    r.onmousemove=ev=>showTip(ev,`<b>${f.nm}: ${b.lbl}</b><br>${b.n} employees<br>Attrition <b>${pct(b.r)}</b> (${(b.r/Math.max(avg,.001)).toFixed(1)}× average)`);r.onmouseleave=hideTip});
+  const hiB=bands.reduce((a,b)=>b.n>=10&&b.r>a.r?b:a,{r:0,lbl:'-'}),loB=bands.reduce((a,b)=>b.n>=10&&b.r<a.r?b:a,{r:1,lbl:'-'});
+  document.getElementById('factorNote').textContent=`Highest attrition at ${hiB.lbl} (${pct(hiB.r)}), lowest at ${loB.lbl} (${pct(loB.r)}). Bands with fewer than 10 people are less reliable.`;
+}
+
+/* ---------- Scatter ---------- */
+function renderScatter(){
+  const s=scope().filter(e=>show==='all'||(show==='left'?e.left:!e.left));
+  const W=560,H=380,m={l:44,r:14,t:14,b:40},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const X=v=>m.l+v/30*iw,Y=v=>m.t+ih-(v-1)/9*ih;
+  let g=`<rect x="${X(12)}" y="${Y(5)}" width="${X(30)-X(12)}" height="${Y(1)-Y(5)}" fill="rgba(239,68,68,.08)" rx="8"/><text x="${X(29.5)}" y="${Y(1.3)}" text-anchor="end" font-size="11" font-weight="700" fill="#ef4444">BURNOUT ZONE</text>`;
+  for(let v=0;v<=30;v+=5)g+=`<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t+ih}" stroke="#f1f2f8"/><text x="${X(v)}" y="${H-22}" text-anchor="middle" font-size="11" fill="#6b6f8e">${v}</text>`;
+  for(let v=1;v<=10;v+=1.5)g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#f1f2f8"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="#6b6f8e">${v}</text>`;
+  g+=`<text x="${m.l+iw/2}" y="${H-4}" text-anchor="middle" font-size="12" font-weight="700" fill="#1b1d36">Overtime (hours / week) →</text><text transform="translate(12 ${m.t+ih/2}) rotate(-90)" text-anchor="middle" font-size="12" font-weight="700" fill="#1b1d36">Engagement →</text>`;
+  s.forEach((e,i)=>{g+=`<circle data-i="${i}" cx="${X(e.ot)}" cy="${Y(e.eng)}" r="0" fill="${e.left?'#ec4899':'#14b8a6'}" fill-opacity="${e.left?.65:.35}" stroke="${e.left?'#ec4899':'#14b8a6'}" stroke-opacity=".8"><animate attributeName="r" to="${(2+e.p*9).toFixed(1)}" dur=".5s" begin="${(i%60)*0.008}s" fill="freeze"/></circle>`});
+  const zone=scope().filter(e=>e.ot>12&&e.eng<5),out=scope().filter(e=>!(e.ot>12&&e.eng<5));
+  const box=document.getElementById('scatter');
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg><p style="font-size:13px;margin-top:6px"><b style="color:var(--red)">${zone.length} people</b> sit in the burnout zone with <b>${pct(rate(zone))}</b> attrition, against <b>${pct(rate(out))}</b> for everyone else.</p>`;
+  const svg=box.querySelector('svg');
+  svg.addEventListener('mousemove',ev=>{const c=ev.target.closest('circle');if(!c)return hideTip();const e=s[c.dataset.i];
+    showTip(ev,`<b>${e.id}</b> · ${e.role}<br>${e.dept}, ${Math.round(e.tenure/12*10)/10} yrs tenure<br>Overtime ${e.ot}h · Engagement ${e.eng}<br>Pay ${Math.round(e.pay*100)}% of market<br>Risk <b>${pct(e.p)}</b> · ${e.left?'<span style="color:#f9a8d4">Left</span>':'<span style="color:#5eead4">Employed</span>'}`)});
+  svg.addEventListener('mouseleave',hideTip);
+}
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{show=b.dataset.show;document.querySelectorAll('[data-show]').forEach(x=>x.classList.toggle('on',x===b));renderScatter()});
+
+/* ---------- Heatmap ---------- */
+function renderHeat(){
+  const T=[['<1y',0,12],['1–2y',12,24],['2–4y',24,48],['4y+',48,999]];
+  const ds=Object.keys(DEPTS);
+  let h=`<div class="h"></div>`+T.map(t=>`<div class="h">${t[0]}</div>`).join('');
+  ds.forEach(d=>{h+=`<div class="r" style="${d===dept?'color:var(--violet)':''}">${d}</div>`;
+    T.forEach(t=>{const g=EMP.filter(e=>e.dept===d&&e.tenure>=t[1]&&e.tenure<t[2]),r=rate(g),k=clamp(r/0.45,0,1);
+      const bg=`hsl(${330-k*10},${55+k*30}%,${94-k*48}%)`;
+      h+=`<div class="c" style="background:${bg};color:${k>.55?'#fff':'#1b1d36'}" data-t="${d} · ${t[0]}<br>${g.length} people · <b>${pct(r)}</b> left">${g.length?Math.round(r*100)+'%':'–'}</div>`})});
+  const el=document.getElementById('heat');el.style.gridTemplateColumns='minmax(110px,1.3fr) repeat(4,1fr)';el.innerHTML=h;
+  el.querySelectorAll('.c').forEach(c=>{c.onmousemove=ev=>showTip(ev,c.dataset.t);c.onmouseleave=hideTip});
+}
+
+/* ---------- Simulator ---------- */
+const LEV=[
+  {k:'ot',nm:'Cap overtime (reduce hours)',min:0,max:60,unit:'%',v:0,hint:'Hire contractors / rebalance rosters. Cost: ~$350 per hour/week removed per person.'},
+  {k:'pay',nm:'Raise below-market pay toward market',min:0,max:100,unit:'%',v:0,hint:'Closes a share of the gap for people paid under 95% of market.'},
+  {k:'eng',nm:'Manager & engagement programme',min:0,max:2,step:0.1,unit:' pts',v:0,hint:'Expected lift in engagement score. Cost: $400 per person per point.'},
+  {k:'train',nm:'Extra training hours',min:0,max:30,unit:'h',v:0,hint:'Per employee per year. Cost: $60 per hour.'},
+  {k:'promo',nm:'Faster promotion cycles',min:0,max:50,unit:'%',v:0,hint:'Shortens time since last promotion for stalled staff. Cost: 4% raise per promotion.'}
+];
+document.getElementById('sliders').innerHTML=LEV.map(l=>`<div class="slider"><label>${l.nm}<em id="lv_${l.k}">0${l.unit}</em></label><input type="range" id="s_${l.k}" min="${l.min}" max="${l.max}" step="${l.step||1}" value="0"><small>${l.hint}</small></div>`).join('');
+LEV.forEach(l=>document.getElementById('s_'+l.k).oninput=e=>{l.v=+e.target.value;renderSim()});
+const PRE={burnout:{ot:40,eng:1,pay:0,train:0,promo:0},pay:{pay:80,ot:0,eng:0,train:0,promo:0},growth:{train:20,promo:35,eng:0.5,ot:0,pay:0},all:{ot:25,pay:50,eng:0.8,train:10,promo:20},reset:{ot:0,pay:0,eng:0,train:0,promo:0}};
+document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.p];LEV.forEach(l=>{l.v=p[l.k];document.getElementById('s_'+l.k).value=l.v});renderSim()});
+
+function simulate(lv,pop){
+  let cost=0,base=0,after=0,baseCost=0,afterCost=0;
+  pop.forEach(e=>{
+    const n={...e};
+    if(lv.ot){const red=e.ot*lv.ot/100;n.ot=e.ot-red;cost+=red*350}
+    if(lv.pay&&e.pay<0.95){const gap=(0.95-e.pay)*lv.pay/100;n.pay=e.pay+gap;cost+=e.salary/e.pay*gap}
+    if(lv.eng){n.eng=Math.min(10,e.eng+lv.eng);cost+=400*lv.eng}
+    if(lv.train){n.train=e.train+lv.train;cost+=60*lv.train}
+    if(lv.promo&&e.promo>2){n.promo=e.promo*(1-lv.promo/100);cost+=e.salary*0.04*lv.promo/100}
+    const p1=sig(logit(n));base+=e.p;after+=p1;baseCost+=e.p*e.salary*0.4;afterCost+=p1*e.salary*0.4;
+  });
+  return {base,after,cost,baseCost,afterCost};
+}
+function renderSim(){
+  const pop=scope(),lv=Object.fromEntries(LEV.map(l=>[l.k,l.v]));
+  LEV.forEach(l=>document.getElementById('lv_'+l.k).textContent=(l.step?l.v.toFixed(1):l.v)+l.unit);
+  const r=simulate(lv,pop),n=pop.length,b=r.base/n,a=r.after/n;
+  // gauge
+  const W=300,H=170,cx=150,cy=150,R=118,ang=v=>Math.PI*(1-clamp(v/0.4,0,1));
+  const pt=v=>[cx+R*Math.cos(ang(v)),cy-R*Math.sin(ang(v))];
+  const arc=(v0,v1,c)=>{const[x0,y0]=pt(v0),[x1,y1]=pt(v1);return `<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}" stroke="${c}" stroke-width="20" fill="none" stroke-linecap="round"/>`};
+  const [nx,ny]=pt(a),[bx,by]=pt(b);
+  document.getElementById('gauge').innerHTML=`<svg viewBox="0 0 ${W} ${H+20}" width="300">${arc(0,.4,'#eef0f7')}${arc(0,a,'url(#gg)')}
+    <defs><linearGradient id="gg"><stop offset="0" stop-color="#10b981"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4444"/></linearGradient></defs>
+    <circle cx="${bx}" cy="${by}" r="7" fill="#fff" stroke="#1b1d36" stroke-width="2" stroke-dasharray="3 2"/>
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#1b1d36" stroke-width="4" stroke-linecap="round" style="transition:.4s"/><circle cx="${cx}" cy="${cy}" r="8" fill="#1b1d36"/>
+    <text x="${cx}" y="${cy-50}" text-anchor="middle" font-size="30" font-weight="800" fill="#1b1d36">${pct(a)}</text>
+    <text x="${cx}" y="${cy-18}" text-anchor="middle" font-size="12" fill="#6b6f8e">predicted attrition (was ${pct(b)})</text>
+    <text x="${cx-R}" y="${cy+20}" text-anchor="middle" font-size="11" fill="#6b6f8e">0%</text><text x="${cx+R}" y="${cy+20}" text-anchor="middle" font-size="11" fill="#6b6f8e">40%</text></svg>`;
+  const saved=r.base-r.after,net=(r.baseCost-r.afterCost)-r.cost;
+  countUp(document.getElementById('oSaved'),saved,v=>Math.round(v));
+  const on=document.getElementById('oNet');countUp(on,net,fmt$);on.style.color=net>=0?'var(--green)':'var(--red)';
+  const mx=Math.max(r.baseCost,r.cost,1);
+  [['fBase',r.baseCost],['fNew',r.afterCost],['fCost',r.cost]].forEach(([id,v])=>{const el=document.getElementById(id);el.style.width=Math.max(v/mx*100,v?8:0)+'%';el.textContent=v?fmt$(v):''});
+  const roi=r.cost?((r.baseCost-r.afterCost)/r.cost):0;
+  document.getElementById('simNote').textContent=r.cost?`Every $1 spent returns about $${roi.toFixed(2)} in avoided turnover cost${roi<1?' — this mix costs more than it saves; try targeting the top drivers instead.':'.'}`:'Pick a preset or move a slider to start.';
+}
+
+/* ---------- Recommendations ---------- */
+function renderRecs(){
+  const pop=scope(),D=drivers(),rk=Object.fromEntries(D.map((d,i)=>[d.k,{...d,rank:i+1}]));
+  const R=[
+    {k:'ot',lv:{ot:35},t:'Rebalance workload in overloaded teams',p:'Cap sustained overtime, add flex/contract capacity in peak periods and review staffing ratios.',c:'var(--red)'},
+    {k:'pay',lv:{pay:70},t:'Targeted market pay correction',p:'Lift salaries under 95% of market median, starting with high performers and critical roles.',c:'var(--pink)'},
+    {k:'eng',lv:{eng:1},t:'Manager coaching & stay interviews',p:'Train managers in 1:1s and recognition; run stay interviews with low-engagement staff each quarter.',c:'var(--violet)'},
+    {k:'promo',lv:{promo:35},t:'Visible career paths',p:'Publish promotion criteria, run twice-yearly calibration and flag people stalled for 3+ years.',c:'var(--amber)'},
+    {k:'train',lv:{train:20},t:'Learning budget & internal mobility',p:'Guarantee learning hours and open internal moves before external hiring.',c:'var(--teal)'}
+  ].map(x=>{const s=simulate(x.lv,pop);return {...x,saved:s.base-s.after,roi:s.cost?(s.baseCost-s.afterCost)/s.cost:0,cost:s.cost,d:rk[x.k]}}).sort((a,b)=>b.saved-a.saved);
+  document.getElementById('recCards').innerHTML=R.map((x,i)=>`<div class="card rec" style="--c:${x.c}">
+    <span class="pri">${i===0?'TOP PRIORITY':i<3?'HIGH':'MEDIUM'}</span>
+    <h3>${x.t}</h3><p>${x.p}</p>
+    <div class="ev"><b>Evidence:</b> ${x.d.nm} is root cause #${x.d.rank}. The worst quarter leaves at <b>${pct(x.d.rw)}</b> vs ${pct(x.d.rrest)} for others (${x.d.rr.toFixed(1)}×).</div>
+    <div class="imp"><span style="color:var(--green)">≈ ${Math.round(x.saved)} leavers avoided</span><span style="color:${x.roi>=1?'var(--green)':'var(--red)'}">ROI ${x.roi.toFixed(1)}×</span></div></div>`).join('');
+}
+
+/* ---------- Watchlist ---------- */
+const COLS=[['id','ID'],['role','Role'],['dept','Department'],['tenure','Tenure'],['ot','Overtime'],['eng','Engagement'],['pay','Pay/market'],['p','Risk'],['f','Why at risk']];
+document.getElementById('thead').innerHTML=COLS.map(c=>`<th data-k="${c[0]}">${c[1]}${c[0]===sortK?(sortDir<0?' ↓':' ↑'):''}</th>`).join('');
+document.getElementById('thead').onclick=e=>{const th=e.target.closest('th');if(!th||th.dataset.k==='f')return;const k=th.dataset.k;sortDir=k===sortK?-sortDir:-1;sortK=k;
+  document.querySelectorAll('#thead th').forEach(t=>t.textContent=COLS.find(c=>c[0]===t.dataset.k)[1]+(t.dataset.k===sortK?(sortDir<0?' ↓':' ↑'):''));renderTable()};
+document.getElementById('search').oninput=renderTable;
+function flags(e){const f=[];if(e.ot>14)f.push('High overtime');if(e.eng<4.5)f.push('Low engagement');if(e.pay<0.88)f.push('Underpaid');if(e.promo>3.5)f.push('Stalled');if(e.train<8)f.push('No training');if(e.abs>12)f.push('Absences');return f}
+function renderTable(){
+  const q=document.getElementById('search').value.toLowerCase();
+  let rows=scope().filter(e=>!e.left&&(!q||(e.id+e.role+e.dept).toLowerCase().includes(q)));
+  rows.sort((a,b)=>(a[sortK]>b[sortK]?1:-1)*sortDir);
+  if(sortK==='p')rows=rows.slice(0,25);else rows=rows.filter(e=>e.p>0.3).slice(0,25);
+  document.getElementById('tbody').innerHTML=rows.map(e=>{const c=e.p>0.5?'#ef4444':e.p>0.35?'#f59e0b':'#10b981';
+    return `<tr><td class="mono">${e.id}</td><td>${e.role}</td><td>${e.dept}</td><td>${(e.tenure/12).toFixed(1)}y</td><td>${e.ot}h</td><td>${e.eng}</td><td>${Math.round(e.pay*100)}%</td><td><span class="risk-pill" style="background:${c}">${Math.round(e.p*100)}%</span></td><td>${flags(e).map(f=>`<span class="flag">${f}</span>`).join('')||'<span style="color:var(--muted)">Mixed factors</span>'}</td></tr>`}).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted)">No matches</td></tr>';
+}
+
+/* ---------- Render all ---------- */
+function renderAll(){renderKPIs();renderDrivers();renderFactor();renderScatter();renderHeat();renderSim();renderRecs();renderTable()}
+renderAll();
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.08});
+document.querySelectorAll('.fade').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
